@@ -18,7 +18,7 @@ This project empirically validates that **A2C is a special case of PPO** (Huang 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YZXLp3gLH8Y_h5rTU8iqmgrMWQnwZ-2B)
 
 1. Click badge above → Runtime → Run all
-2. Wait ~70 minutes (CPU)
+2. Wait ~30 minutes (CPU)
 3. Results appear in notebook and save to `results/`
 
 **Local Execution**:
