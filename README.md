@@ -1,4 +1,4 @@
-markdown# Progressive Ablation Study: PPO to A2C Convergence
+
 
 **ECE 57000 Track 1: TinyReproductions** | Purdue University | April 2026
 
