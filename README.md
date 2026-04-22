@@ -52,10 +52,10 @@ AI_Project_Checkpoint_2.ipynb
 ├── Cell 3-4: Imports & configuration (lines 9-26)
 │
 ├── Cell 5: Helper functions (lines 27-85)
-│   ├── set_global_seed() - AUTHOR WRITTEN
-│   ├── make_env() - AUTHOR WRITTEN
-│   ├── SimpleLearningTracker - AUTHOR WRITTEN
-│   └── train_with_tracking() - AUTHOR WRITTEN
+│   ├── set_global_seed() 
+│   ├── make_env() 
+│   ├── SimpleLearningTracker
+│   └── train_with_tracking() 
 │
 ├── Cell 6: Model configurations (lines 86-145)
 │   ├── create_models() - AUTHOR WRITTEN
@@ -66,16 +66,16 @@ AI_Project_Checkpoint_2.ipynb
 │   └── PPO-3: no clipping (lines 124-132)
 │
 ├── Cell 7: Experiment loop (lines 146-180)
-│   └── run_experiment() - AUTHOR WRITTEN
+│   └── run_experiment() 
 │
 ├── Cell 8: Visualization (lines 181-330)
-│   ├── plot_learning_curves() - AUTHOR WRITTEN
-│   ├── plot_final_performance() - AUTHOR WRITTEN
-│   ├── plot_parameter_distances() - AUTHOR WRITTEN
-│   └── save_results_json() - AUTHOR WRITTEN
+│   ├── plot_learning_curves() 
+│   ├── plot_final_performance() 
+│   ├── plot_parameter_distances() 
+│   └── save_results_json() 
 │
 └── Cell 9: Main execution (lines 331-415)
-    └── AUTHOR WRITTEN
+   
 ```
 
 ---
