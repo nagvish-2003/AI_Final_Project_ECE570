@@ -41,14 +41,42 @@ Automatically installed in Cell 1:
 ---
 
 ## Code Structure
+
+### Notebook Organization
+
+```
 AI_Project_Checkpoint_2.ipynb
-├── Cell 1: Install dependencies (auto)
-├── Cell 3-4: Imports & config (lines 9-26)
-├── Cell 5: Helper functions (lines 27-85) - AUTHOR WRITTEN
-├── Cell 6: Model configs (lines 86-145) - AUTHOR WRITTEN
-├── Cell 7: Experiment loop (lines 146-180) - AUTHOR WRITTEN
-├── Cell 8: Plotting (lines 181-330) - AUTHOR WRITTEN
-└── Cell 9: RUN EXPERIMENT (lines 331-415) - AUTHOR WRITTEN
+│
+├── Cell 1: Install dependencies (auto-install)
+│
+├── Cell 3-4: Imports & configuration (lines 9-26)
+│
+├── Cell 5: Helper functions (lines 27-85)
+│   ├── set_global_seed() - AUTHOR WRITTEN
+│   ├── make_env() - AUTHOR WRITTEN
+│   ├── SimpleLearningTracker - AUTHOR WRITTEN
+│   └── train_with_tracking() - AUTHOR WRITTEN
+│
+├── Cell 6: Model configurations (lines 86-145)
+│   ├── create_models() - AUTHOR WRITTEN
+│   ├── A2C configuration (lines 91-97)
+│   ├── PPO-0 baseline (lines 99-105)
+│   ├── PPO-1: K=1 (lines 107-113)
+│   ├── PPO-2: disable GAE (lines 115-122)
+│   └── PPO-3: no clipping (lines 124-132)
+│
+├── Cell 7: Experiment loop (lines 146-180)
+│   └── run_experiment() - AUTHOR WRITTEN
+│
+├── Cell 8: Visualization (lines 181-330)
+│   ├── plot_learning_curves() - AUTHOR WRITTEN
+│   ├── plot_final_performance() - AUTHOR WRITTEN
+│   ├── plot_parameter_distances() - AUTHOR WRITTEN
+│   └── save_results_json() - AUTHOR WRITTEN
+│
+└── Cell 9: Main execution (lines 331-415)
+    └── AUTHOR WRITTEN
+```
 
 ---
 
@@ -135,4 +163,3 @@ Project: Academic use (ECE 57000) | Dependencies: MIT (SB3, Gymnasium), BSD (PyT
 
 ---
 
-**Contact**: For implementation questions, see code comments. For SB3 issues, see https://stable-baselines3.readthedocs.io/
