@@ -175,3 +175,75 @@ PPO("MlpPolicy", env, seed=seed, verbose=0,
    - Across-seed variance
 
 2. **Structural Similarity Metric**:
+Maximum absolute parameter difference across all policy network parameters.
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue**: "RuntimeError: CUDA out of memory"
+- **Solution**: CartPole runs fine on CPU. Colab defaults to CPU for this notebook.
+
+**Issue**: Results differ slightly from paper
+- **Solution**: Minor variations (±5 points) are normal due to environment stochasticity. Run with more seeds for tighter confidence intervals.
+
+**Issue**: Training takes longer than expected
+- **Solution**: Free Colab tier may slow down after extended use. Consider Colab Pro or run locally.
+
+### Getting Help
+
+For questions about:
+- **Implementation**: Check the code comments in the notebook
+- **Stable-Baselines3**: See [official documentation](https://stable-baselines3.readthedocs.io/)
+- **Project requirements**: Refer to the course project guidelines
+
+## Hardware Requirements
+
+- **Minimum**: Single CPU core, 2GB RAM
+- **Recommended**: 4+ CPU cores, 4GB RAM (faster execution)
+- **GPU**: Not required (CartPole is CPU-efficient)
+
+## References
+
+1. Schulman et al., "Proximal Policy Optimization Algorithms", arXiv:1707.06347, 2017
+2. Mnih et al., "Asynchronous Methods for Deep Reinforcement Learning", ICML 2016
+3. Huang et al., "A2C is a special case of PPO", arXiv:2205.09123, 2022
+4. Raffin et al., "Stable-Baselines3", JMLR 2021
+
+## Citation
+
+If you use this code for academic work, please cite:
+
+```bibtex
+@misc{ppo_a2c_ablation2026,
+  title={Progressive Ablation Study: Empirical Analysis of PPO to A2C Convergence},
+  author={ECE 57000 Course Project},
+  year={2026},
+  howpublished={Purdue University}
+}
+```
+
+## License
+
+This code is provided for academic use in ECE 57000. The Stable-Baselines3 library is licensed under MIT License.
+
+## Acknowledgments
+
+- **Stable-Baselines3 Team**: For providing robust RL algorithm implementations
+- **OpenAI Gymnasium**: For the CartPole-v1 environment
+- **Huang et al.**: For the theoretical foundation ("A2C is a special case of PPO")
+- **Course Staff**: For guidance and feedback throughout the project
+
+## Project Structure
+├── README.md                           # This file
+├── AI_Project_Checkpoint_2.ipynb      # Google Colab notebook (main code)
+├── results/                           # Generated output files
+│   ├── learning_curves.png
+│   ├── final_performance.png
+│   ├── parameter_distances.png
+│   └── results.json
+└── paper/
+├── main.tex                       # ICLR-style paper
+├── references.bib                 # Bibliography
+├── learning_curves.png            # Figure 1
+└── parameter_distances.png        # Figure 2
