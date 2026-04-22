@@ -82,7 +82,7 @@ AI_Project_Checkpoint_2.ipynb
 
 ## Code Attribution
 
-### **Written by me** (Lines 27-415)
+### **Written by me along with LLM Collaborator ( Claude + ChatGPT )** (Lines 27-415)
 All experimental code written for this project:
 - Helper functions: `set_global_seed()`, `make_env()`, `SimpleLearningTracker`, `train_with_tracking()`
 - Model configurations: `create_models()` with 5 ablation variants
