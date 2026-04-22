@@ -52,7 +52,7 @@ The Google Colab notebook is organized into the following sections:
 !pip install stable-baselines3[extra] gymnasium --quiet
 ```
 
-### **Cell 2: Mount Google Drive** (Optional)
+### **Cell 2: Mount Google Drive**
 Saves results permanently to your Google Drive.
 
 ### **Cell 3-8: Setup Code**
@@ -83,3 +83,95 @@ Main execution cell that:
 ## Output Files
 
 The experiment generates the following files in the `results/` directory:
+
+## Reproducibility
+
+### Random Seeds
+
+The project uses three fixed seeds (0, 42, 123) for reproducibility. Seeds are set for:
+- NumPy random number generator
+- PyTorch random number generator  
+- Gymnasium environment initialization
+
+### Expected Results
+
+With the provided seeds, you should observe:
+
+| Model | Mean Reward | Std Dev |
+|-------|-------------|---------|
+| A2C | ~353 | ±145 |
+| PPO-0 | 500 | ±0 |
+| PPO-1 | ~471 | ±33 |
+| PPO-2 | ~494 | ±3 |
+| PPO-3 | ~201 | ±132 |
+
+**Note**: Minor variations (±5 reward points) may occur due to environment stochasticity and platform differences.
+
+## Code Attribution
+
+### Original Implementation
+
+This project uses [Stable-Baselines3](https://github.com/DLR-RM/stable-baselines3) for PPO and A2C implementations:
+
+- **Library**: Stable-Baselines3 v2.0+
+- **License**: MIT License
+- **Citation**: Raffin et al., "Stable-Baselines3: Reliable Reinforcement Learning Implementations", JMLR 2021
+
+### Authored Code
+
+All experimental code was written specifically for this project:
+
+**Main Components**:
+- `create_models()` - Progressive ablation configuration
+- `train_with_tracking()` - Learning curve tracking
+- `run_experiment()` - Multi-seed experiment loop
+- `compute_parameter_distances()` - Parameter distance metric
+- All plotting functions
+- Main execution logic
+
+### Adapted Code
+
+Configuration parameters for PPO variants are adapted from:
+- Huang et al., "A2C is a special case of PPO", arXiv 2022 (for theoretical equivalence settings)
+- Schulman et al., "Proximal Policy Optimization Algorithms", arXiv 2017 (for default PPO settings)
+
+## Experimental Design
+
+### Model Configurations
+
+**A2C Baseline**:
+```python
+A2C("MlpPolicy", env, seed=seed, verbose=0, n_steps=128)
+```
+
+**PPO-0 (Default)**:
+```python
+PPO("MlpPolicy", env, seed=seed, verbose=0)
+# Uses: n_epochs=10, gae_lambda=0.95, normalize_advantage=True, clip_range=0.2
+```
+
+**PPO-1 (Single Epoch)**:
+```python
+PPO("MlpPolicy", env, seed=seed, verbose=0, n_epochs=1)
+```
+
+**PPO-2 (Disable GAE & Normalization)**:
+```python
+PPO("MlpPolicy", env, seed=seed, verbose=0, 
+    n_epochs=1, gae_lambda=1.0, normalize_advantage=False)
+```
+
+**PPO-3 (Remove Clipping)**:
+```python
+PPO("MlpPolicy", env, seed=seed, verbose=0,
+    n_epochs=1, gae_lambda=1.0, normalize_advantage=False, clip_range=0.0)
+```
+
+### Evaluation Metrics
+
+1. **Performance Metrics**:
+   - Final episodic reward (mean ± std over 20 episodes)
+   - Learning curves (evaluated every 2,000 steps)
+   - Across-seed variance
+
+2. **Structural Similarity Metric**:
