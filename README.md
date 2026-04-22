@@ -236,19 +236,17 @@ This code is provided for academic use in ECE 57000. The Stable-Baselines3 libra
 - **Course Staff**: For guidance and feedback throughout the project
 
 ## Project Structure
-├── README.md                           # This file
-├── AI_Project_Checkpoint_2.ipynb      # Google Colab notebook (main code)
-├── results/                           # Generated output files
-│   ├── learning_curves.png
-│   ├── final_performance.png
-│   ├── parameter_distances.png
-│   └── results.json
-└── paper/
-├── main.tex                       # ICLR-style paper
-├── references.bib                 # Bibliography
-├── learning_curves.png            # Figure 1
-└── parameter_distances.png        # Figure 2
 
+```
+PPO_A2C_Project/
+├── README.md                          # This file
+├── AI_Project_Checkpoint_2.ipynb     # Main code (Google Colab)
+└── results/                          # Generated outputs
+    ├── learning_curves.png
+    ├── final_performance.png
+    ├── parameter_distances.png
+    └── results.json
+```
 ## Contact
 
 For questions about this implementation, please refer to the course project guidelines or contact the course staff.
