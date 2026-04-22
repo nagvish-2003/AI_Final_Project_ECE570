@@ -143,7 +143,7 @@ Configuration parameters based on published papers (NO library code modified):
 2. Environment: `env.reset(seed=)`, `env.action_space.seed()` (lines 36-39)
 3. Models: `A2C(..., seed=)`, `PPO(..., seed=)` (lines 91-132)
 
-**Runtime**: ~70 min (Colab CPU), ~60 min (local CPU)  
+**Runtime**: ~30 min (Colab CPU), ~20 min (local CPU)  
 **Platform**: Cross-platform (Linux/macOS/Windows)
 
 ---
