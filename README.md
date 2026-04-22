@@ -157,9 +157,3 @@ Configuration parameters based on published papers (NO library code modified):
 
 ---
 
-## License
-
-Project: Academic use (ECE 57000) | Dependencies: MIT (SB3, Gymnasium), BSD (PyTorch)
-
----
-
