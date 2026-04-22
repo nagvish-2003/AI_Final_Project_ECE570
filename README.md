@@ -175,6 +175,7 @@ PPO("MlpPolicy", env, seed=seed, verbose=0,
    - Across-seed variance
 
 2. **Structural Similarity Metric**:
+   d(model, A2C) = max |θ_model - θ_A2C|
 Maximum absolute parameter difference across all policy network parameters.
 
 ## Troubleshooting
