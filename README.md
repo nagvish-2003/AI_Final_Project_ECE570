@@ -248,3 +248,13 @@ This code is provided for academic use in ECE 57000. The Stable-Baselines3 libra
 ├── references.bib                 # Bibliography
 ├── learning_curves.png            # Figure 1
 └── parameter_distances.png        # Figure 2
+
+## Contact
+
+For questions about this implementation, please refer to the course project guidelines or contact the course staff.
+
+---
+
+**Last Updated**: April 2026  
+**Course**: ECE 57000, Purdue University  
+**Track**: Track 1 - TinyReproductions
