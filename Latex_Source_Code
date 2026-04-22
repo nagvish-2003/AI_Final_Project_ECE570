@@ -1,0 +1,261 @@
+\documentclass{article}
+
+\usepackage{iclr2026_conference}
+\usepackage{times}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\iclrfinalcopy  % Add this line before \begin{document}
+
+\title{Progressive Ablation Study: \\
+Empirical Analysis of PPO to A2C Convergence}
+
+\author{Nagavishnu Nagaselvam \\  % CHANGE THIS
+Department of Electrical and Computer Engineering \\
+Purdue University \\
+\texttt{nnagasel@purdue.edu} \\  % CHANGE THIS
+}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Recent work has theoretically shown that Advantage Actor-Critic (A2C) is a special case of Proximal Policy Optimization (PPO) when PPO is constrained to a single update epoch. Building on this insight, we conduct a progressive ablation study to empirically investigate how PPO's learned parameters and behavior converge toward A2C as key mechanisms are systematically removed. We train five model variants (A2C and four PPO configurations) across three random seeds on the CartPole-v1 environment, measuring both task performance and structural similarity via parameter distance metrics. Our results confirm the theoretical prediction: PPO with single-epoch updates (PPO-1) achieves the closest structural similarity to A2C (maximum parameter difference of 0.51 versus 1.81 for default PPO). However, this structural convergence comes with a 6\% performance reduction and increased variance. Most critically, we find that removing PPO's clipping mechanism causes catastrophic training failure (60\% performance drop), demonstrating that clipping is essential for stability even when other mechanisms are A2C-like. Our work provides empirical validation of the PPO-A2C relationship and reveals the performance-stability trade-offs inherent in A2C's constrained design.
+
+\end{abstract}
+
+\begin{center}
+\textbf{Code:} \href{https://colab.research.google.com/drive/1YZXLp3gLH8Y_h5rTU8iqmgrMWQnwZ-2B?usp=sharing}{\texttt{colab.research.google.com/drive/1YZXLp3gLH8Y\_h5rTU8iqmgrMWQnwZ-2B}} \\
+\textbf{Readme File:} \href{https://colab.research.google.com/drive/1YZXLp3gLH8Y_h5rTU8iqmgrMWQnwZ-2B}{\texttt{README.md}}
+\end{center}
+
+\vspace{0.3cm}
+
+\section{Introduction}
+Proximal Policy Optimization (PPO) \citep{schulman2017ppo} and Advantage Actor-Critic (A2C) \citep{mnih2016a3c} are among the most widely adopted deep reinforcement learning algorithms for game AI and robotics applications. Conventionally, these algorithms have been viewed as distinct methods with different objectives and training paradigms: A2C directly applies policy gradient updates using advantage estimates, while PPO employs a clipped surrogate objective with multiple optimization epochs per batch of experience.
+
+However, recent theoretical analysis by Huang et al.~\citep{huang2022a2c} has challenged this conventional understanding, demonstrating that A2C is mathematically equivalent to PPO when PPO is configured with a single update epoch ($K=1$). Under this configuration, the ratio $\pi_\theta(a_t|s_t)/\pi_{\theta_{\text{old}}}(a_t|s_t) = 1$ during the first update, causing PPO's clipping mechanism to have no effect and collapsing PPO's objective to match A2C's gradient exactly.
+
+While this theoretical equivalence is elegant, it raises important empirical questions: \textit{How does PPO's learned behavior and parameter space evolve as we progressively remove its distinctive mechanisms and approach A2C's configuration?} Does structural convergence in parameter space correspond to convergence in performance and stability? Which of PPO's mechanisms are most critical for its empirical success?
+
+\subsection{Contributions}
+
+In this work, we conduct a systematic empirical study to answer these questions through progressive ablation. The contributions are:
+
+\begin{enumerate}
+\item We design and execute a controlled ablation study with four PPO variants that progressively approach A2C by removing: (1) multi-epoch updates, (2) Generalized Advantage Estimation (GAE) and advantage normalization, and (3) the clipping mechanism.
+
+\item We introduce a parameter distance metric to quantify structural similarity between learned policies, demonstrating that single-epoch PPO (PPO-1) achieves 3.5× closer parameter alignment with A2C compared to default PPO.
+
+\item Through multi-seed experiments with learning curve analysis, we reveal that structural convergence toward A2C is accompanied by performance degradation and increased training variance, with the removal of clipping causing catastrophic failure (60\% performance drop).
+
+\item We validate the theoretical PPO-A2C equivalence empirically while highlighting the practical importance of PPO's additional mechanisms for achieving stable, high-performance learning.
+\end{enumerate}
+
+\section{Related Work}
+
+\subsection{A2C and PPO Algorithms}
+
+Advantage Actor-Critic (A2C) \citep{mnih2016a3c} is the synchronous variant of the Asynchronous Advantage Actor-Critic (A3C) algorithm. A2C maximizes the policy objective:
+\begin{equation}
+L^{\text{A2C}}(\theta) = \mathbb{E}_t\left[\log \pi_\theta(a_t | s_t) \hat{A}_t\right]
+\end{equation}
+where $\hat{A}_t$ is an estimate of the advantage function, typically computed by subtracting the value function from returns.
+
+Proximal Policy Optimization (PPO) \citep{schulman2017ppo} introduced a clipped surrogate objective to prevent destructively large policy updates:
+\begin{equation}
+L^{\text{PPO}}(\theta) = \mathbb{E}_t\left[\min\left(r_t(\theta)\hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t\right)\right]
+\end{equation}
+where $r_t(\theta) = \pi_\theta(a_t|s_t)/\pi_{\theta_{\text{old}}}(a_t|s_t)$ is the probability ratio. PPO additionally employs multiple update epochs per batch of experience and typically uses Generalized Advantage Estimation (GAE).
+
+\subsection{Theoretical Equivalence}
+
+Huang et al.~\citep{huang2022a2c} proved that when PPO uses a single update epoch ($K=1$), its gradient becomes identical to A2C's gradient. Specifically, during the first epoch, $\pi_\theta = \pi_{\theta_{\text{old}}}$, so $r_t(\theta) = 1$ and the clipping operation has no effect. Applying the log-derivative trick shows that $\nabla_\theta L^{\text{PPO}, K=1}(\theta) = \nabla_\theta L^{\text{A2C}}(\theta)$. They validated this empirically by showing that appropriately configured PPO and A2C produce identical trained models in CartPole.
+
+Our work extends this binary equivalence result by studying the \textit{gradient path} from PPO to A2C through progressive ablation, revealing how different mechanisms contribute to the divergence between the two algorithms.
+
+\section{Methodology}
+
+\subsection{Progressive Ablation Design}
+
+We design a four-step ablation ladder that progressively transforms PPO toward A2C:
+
+\begin{itemize}
+\item \textbf{PPO-0 (Baseline):} Default PPO with all standard mechanisms enabled (10 epochs, GAE with $\lambda=0.95$, advantage normalization, $\epsilon=0.2$ clipping)
+
+\item \textbf{PPO-1 (Single Epoch):} Set $K=1$ to match A2C's single-update paradigm. This is the theoretically equivalent configuration identified by Huang et al.~\citep{huang2022a2c}.
+
+\item \textbf{PPO-2 (Disable GAE \& Normalization):} Additionally set $\lambda=1.0$ (disabling GAE, matching A2C's advantage estimation) and disable advantage normalization.
+
+\item \textbf{PPO-3 (Remove Clipping):} Set $\epsilon=0.0$ to completely disable the clipping mechanism, making the objective structurally identical to A2C.
+\end{itemize}
+
+We also train a standard A2C baseline for comparison. All models share the same policy architecture (2-layer MLP with 64 hidden units), training timesteps (50,000), and evaluation protocol.
+
+\subsection{Evaluation Metrics}
+
+We measure two complementary aspects of convergence:
+
+\textbf{Performance Metrics:}
+\begin{itemize}
+\item Final episodic reward (mean and standard deviation over 20 evaluation episodes)
+\item Learning curves: reward progression evaluated every 2,000 steps
+\item Across-seed variance to assess training stability
+\end{itemize}
+
+\textbf{Structural Similarity Metric:}
+To quantify parameter-space convergence toward A2C, we compute:
+\begin{equation}
+d(\text{model}, \text{A2C}) = \max_{\theta_i} |\theta_i^{\text{model}} - \theta_i^{\text{A2C}}|
+\end{equation}
+where $\theta_i$ ranges over all policy network parameters. This measures the maximum absolute difference in any parameter, providing a conservative estimate of structural similarity.
+
+\subsection{Experimental Setup}
+
+\textbf{Environment:} CartPole-v1, a standard benchmark for policy gradient methods with a maximum episode reward of 500.
+
+\textbf{Training:} We train each configuration for 50,000 timesteps across three random seeds (0, 42, 123). All models use the same MLP policy architecture and are evaluated every 2,000 steps using 10 deterministic rollouts.
+
+\textbf{Implementation:} We use Stable-Baselines3 \citep{raffin2021stable}, a well-tested reinforcement learning library, ensuring implementation correctness. All hyperparameters except the ablated mechanisms are kept constant across configurations (learning rate: 7e-4, batch size: 128 for PPO-0, 5 for others to match A2C).
+
+\textbf{Reproducibility:} We set random seeds for NumPy, PyTorch, and environment initialization. Complete code and hyperparameter configurations are provided in the supplementary materials.
+
+\section{Results}
+
+\subsection{Performance Analysis}
+
+Table~\ref{tab:results} summarizes the final performance across all models. Figure~\ref{fig:learning_curves} shows the learning dynamics over training.
+
+\begin{table}[h]
+\centering
+\caption{Final performance after 50,000 training steps (mean $\pm$ std across 3 seeds, each evaluated over 20 episodes).}
+\label{tab:results}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Model} & \textbf{Mean Reward} & \textbf{Std Dev} \\
+\midrule
+A2C & 352.83 & $\pm$ 144.66 \\
+PPO-0 (Baseline) & \textbf{500.00} & $\pm$ 0.00 \\
+PPO-1 (K=1) & 470.92 & $\pm$ 32.54 \\
+PPO-2 (K=1, $\lambda$=1, no norm) & 494.43 & $\pm$ 3.36 \\
+PPO-3 (K=1, $\lambda$=1, no norm, no clip) & 200.62 & $\pm$ 131.97 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key Observations:}
+
+\begin{enumerate}
+\item \textbf{PPO-0 achieves perfect performance:} Default PPO consistently solves CartPole (500 reward) with zero variance across all seeds, demonstrating robust learning.
+
+\item \textbf{Single-epoch updates reduce performance:} PPO-1 shows a 6\% performance drop (471 vs 500) and increased variance ($\pm$33), indicating that multi-epoch optimization contributes meaningfully to PPO's sample efficiency.
+
+\item \textbf{GAE and normalization have limited impact:} Surprisingly, PPO-2 nearly matches PPO-0 performance (494 vs 500), suggesting these mechanisms are less critical than multi-epoch updates for this task.
+
+\item \textbf{Clipping is essential:} Removing clipping (PPO-3) causes catastrophic failure, achieving only 201 mean reward with massive variance ($\pm$132). This represents a 60\% performance drop from PPO-0 and 43\% drop from A2C.
+
+\item \textbf{A2C shows high variance:} A2C achieves moderate performance (353) but with extremely high variance ($\pm$145), with individual seed results ranging from 152 to 487.
+\end{enumerate}
+
+\subsection{Learning Dynamics}
+
+Figure~\ref{fig:learning_curves} reveals critical differences in learning behavior:
+
+\begin{itemize}
+\item \textbf{PPO-0 and PPO-2} show smooth, monotonic improvement, reaching optimal performance by 20,000 steps and maintaining stability.
+
+\item \textbf{PPO-1} exhibits slower, more erratic learning with continued fluctuations even after 30,000 steps, never fully stabilizing.
+
+\item \textbf{A2C} shows highly unstable learning, oscillating between 200-500 throughout training without convergence.
+
+\item \textbf{PPO-3} displays catastrophic instability, with multiple complete failures where performance drops near zero (e.g., at steps 20,000 and 40,000 for certain seeds), demonstrating training collapse.
+\end{itemize}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{learning_curves.png}
+\caption{Learning curves showing mean episodic reward with standard deviation across seeds evaluated every 2,000 steps. PPO-0 and PPO-2 show stable improvement. A2C exhibits high variance. PPO-3 shows catastrophic instability.}
+\label{fig:learning_curves}
+\end{figure}
+
+\subsection{Parameter Distance Analysis}
+
+Table~\ref{tab:distances} shows the structural similarity of each PPO variant to A2C. PPO-1 achieves 3.5× closer alignment to A2C compared to PPO-0 (0.51 vs 1.81), empirically validating the theoretical prediction. Counterintuitively, PPO-2 and PPO-3 show larger parameter distances (0.75 and 0.63) than PPO-1, suggesting learning dynamics differ significantly even when objectives are similar. Despite being closest in parameter space, PPO-1 still performs significantly better than A2C (471 vs 353).
+
+\begin{table}[h]
+\centering
+\caption{Maximum absolute parameter difference from A2C baseline (lower = more similar).}
+\label{tab:distances}
+\begin{tabular}{lc}
+\toprule
+\textbf{Model} & \textbf{Max |$\theta$ - $\theta_{\text{A2C}}$|} \\
+\midrule
+PPO-0 (Baseline) & 1.8059 \\
+PPO-1 (K=1) & \textbf{0.5091} \\
+PPO-2 (K=1, $\lambda$=1, no norm) & 0.7462 \\
+PPO-3 (K=1, $\lambda$=1, no norm, no clip) & 0.6309 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.7\textwidth]{parameter_distances.png}
+\caption{Parameter distance from A2C baseline. PPO-1 achieves closest structural similarity, confirming theoretical predictions.}
+\label{fig:param_dist}
+\end{figure}
+
+\section{Discussion}
+
+Our results provide strong empirical support for the theoretical equivalence between single-epoch PPO and A2C \citep{huang2022a2c}. PPO-1 achieves the closest parameter-space convergence to A2C, confirming that $K=1$ is the dominant factor in structural similarity. However, this equivalence is \textit{asymmetric}: single-epoch PPO still outperforms A2C (471 vs 353), suggesting implementation details beyond the core objective continue to differentiate the algorithms.
+
+Perhaps our most striking finding is the catastrophic failure of PPO-3 when clipping is removed (201 reward, $\pm$132 variance). This demonstrates that clipping is \textit{essential} for training stability, even when other mechanisms suggest A2C-like behavior should be achievable. Without clipping, small errors in value estimation compound through policy gradient updates, leading to divergence.
+
+The 6\% performance gap between PPO-0 and PPO-1 demonstrates that multi-epoch updates provide meaningful sample efficiency gains, aligning with PPO's original motivation \citep{schulman2017ppo}. Our multi-seed experiments reveal A2C's fundamental instability (performance ranges from 152 to 487), which may explain why PPO has largely superseded A2C in practice.
+
+Our study focuses on CartPole-v1 to enable careful multi-seed analysis. Future work should extend this ablation to more complex environments and alternative metrics.
+\section{Conclusion}
+
+This work provides a comprehensive empirical validation and extension of the theoretical result that A2C is a special case of PPO when $K=1$ \citep{huang2022a2c}. Through progressive ablation, we demonstrate that:
+
+\begin{enumerate}
+\item Single-epoch PPO (PPO-1) achieves 3.5× closer structural similarity to A2C in parameter space compared to default PPO, confirming the theoretical equivalence.
+
+\item Despite structural convergence, PPO-1 still outperforms A2C by 33\% (471 vs 353 mean reward), revealing that parameter-space similarity does not guarantee equivalent behavior.
+
+\item PPO's clipping mechanism is essential for training stability—removing it causes a 60\% performance drop with catastrophic training failures, even when other mechanisms suggest A2C-like behavior should be achievable.
+
+\item Multi-epoch updates provide meaningful sample efficiency gains (6\% performance improvement), while GAE and advantage normalization have limited impact on CartPole.
+
+\item A2C exhibits high training variance ($\pm$145) that PPO's mechanisms successfully mitigate, explaining PPO's practical dominance despite theoretical equivalence.
+\end{enumerate}
+
+\textbf{Track 1 Contribution:} We have successfully reproduced and extended the core finding of Huang et al.~\citep{huang2022a2c} that A2C is a special case of PPO, providing empirical validation through progressive ablation rather than binary comparison. Our multi-seed experiments with learning curve analysis and parameter distance metrics offer deeper insights into \textit{how} and \textit{why} these algorithms diverge in practice despite theoretical equivalence, contributing practical understanding to the game AI and reinforcement learning communities.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\section*{LLM Acknowledgment}
+
+Specifically, the LLM was used to:
+
+\begin{itemize}
+\item Generate the experimental code framework using Stable-Baselines3 and implement the progressive ablation configurations.
+\item Create visualization code for learning curves, performance plots, and parameter distance analysis.
+\item Assist in the structuring and formatting of Latex code for tables and figures.
+\item Refine the grammatical clarity and academic tone of the methodology, results, and discussion sections.
+\item Generate standard BibTeX citation formats for the referenced literature.
+\end{itemize}
+
+
+\end{document}
