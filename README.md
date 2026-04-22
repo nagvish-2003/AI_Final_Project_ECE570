@@ -1,5 +1,3 @@
-# AI_Final_Project_ECE570
-ECE570 Final Project
 
 # Progressive Ablation Study: PPO to A2C Convergence
 
@@ -29,7 +27,7 @@ We conduct a systematic ablation study demonstrating how PPO's learned parameter
 
 ## Quick Start
 
-### Run in Google Colab (Recommended)
+### Run in Google Colab
 
 Click here to open and run the complete experiment in Google Colab:
 
